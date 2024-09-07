@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rizkiromadoni/rss-aggregator/internal/auth"
 	"github.com/rizkiromadoni/rss-aggregator/internal/database"
 )
 
@@ -42,4 +43,20 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 	}
 
 	respondWithJSON(w, 201, databaseUserToUser(user))
+}
+
+func (apiCfg *apiConfig) handlerGetUserByApiKey(w http.ResponseWriter, r *http.Request) {
+	apiKey, err := auth.GetApiKey(r.Header)
+	if err != nil {
+		respondWithError(w, 403, err.Error())
+		return
+	}
+
+	user, err := apiCfg.DB.GetUserByApiKey(r.Context(), apiKey)
+	if err != nil {
+		respondWithError(w, 403, "Invalid API Key")
+		return
+	}
+
+	respondWithJSON(w, 200, databaseUserToUser(user))
 }
